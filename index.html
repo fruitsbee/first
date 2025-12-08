@@ -12,12 +12,9 @@
     
     <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
     <script>
-        // 모바일 터치 이벤트를 드래그 이벤트로 변환 설정
         MobileDragDrop.polyfill({
             dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
         });
-        
-        // 터치 시 스크롤 방지 (드래그 경험 향상)
         window.addEventListener('touchmove', function() {}, { passive: false });
     </script>
 
@@ -35,60 +32,52 @@
             font-family: 'Quicksand', 'Noto Sans KR', sans-serif;
             height: 100vh;
             overflow: hidden;
-            /* 배경: 모바일에서도 잘 보이도록 중앙 정렬 */
-            background: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+            background-color: #333; /* 이미지 로딩 전 기본색 */
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
             display: flex;
             align-items: center;
             color: var(--text-color);
-            /* 기본(PC): 우측 정렬 */
             justify-content: flex-end; 
+            transition: background-image 0.5s ease-in-out;
         }
 
         body::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.25); z-index: -1;
+            background: rgba(0, 0, 0, 0.25); z-index: -1; /* 배경 어둡게 처리 */
         }
 
-        /* 반응형 컨테이너 */
         .container {
             width: 400px;
             height: 90vh;
-            margin-right: 5%; /* PC: 우측 여백 */
+            margin-right: 5%;
             display: flex;
             flex-direction: column;
             gap: 20px;
             animation: fadeIn 1.2s ease-out;
-            transition: all 0.5s ease;
         }
 
-        /* 모바일 대응 미디어 쿼리 */
         @media (max-width: 768px) {
-            body {
-                justify-content: center; /* 모바일: 중앙 정렬 */
-            }
-            .container {
-                width: 90%; /* 모바일: 꽉 차게 */
-                margin-right: 0;
-                height: 95vh;
-            }
+            body { justify-content: center; }
+            .container { width: 90%; margin-right: 0; height: 95vh; }
             h1 { font-size: 2rem; }
-            .card { padding: 16px; } /* 터치하기 좋게 패딩 조정 */
         }
 
-        header { text-align: right; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        header { text-align: right; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         h1 { font-weight: 300; font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 5px; }
-        p.subtitle { font-weight: 300; opacity: 0.8; font-size: 0.9rem; }
+        p.subtitle { font-weight: 300; opacity: 0.9; font-size: 0.9rem; }
 
         #link-list {
             flex-grow: 1;
             overflow-y: auto;
             padding-right: 5px;
-            padding-bottom: 20px; /* 하단 여백 확보 */
+            padding-bottom: 20px;
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
-        #link-list::-webkit-scrollbar { width: 0px; } /* 모바일에서 스크롤바 숨김 */
+        #link-list::-webkit-scrollbar { width: 0px; }
 
         .card {
             background: var(--glass-bg);
@@ -101,17 +90,15 @@
             justify-content: space-between;
             align-items: center;
             cursor: grab;
-            transition: all 0.2s ease;
             box-shadow: var(--glass-shadow);
             position: relative;
-            touch-action: none; /* 터치 스크롤 방지 (드래그 위해) */
+            touch-action: none;
         }
 
         .card:active, .card.dragging { 
             cursor: grabbing; 
             transform: scale(1.02);
             background: rgba(255,255,255,0.25);
-            box-shadow: 0 0 20px rgba(255,255,255,0.4);
             z-index: 100;
         }
 
@@ -119,34 +106,21 @@
         .card-title { font-weight: 500; font-size: 1.1rem; margin-bottom: 4px; }
         .card-url { font-size: 0.75rem; opacity: 0.7; font-weight: 300; }
 
-        /* 수정/삭제 버튼 */
         .actions { display: flex; gap: 8px; }
         .icon-btn {
             background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 8px;
-            border-radius: 50%;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
+            border: none; color: white; padding: 8px; border-radius: 50%;
+            cursor: pointer; backdrop-filter: blur(5px);
         }
 
         .add-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid var(--glass-border);
-            color: white;
-            padding: 15px;
-            border-radius: 16px;
-            font-size: 1rem;
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
+            color: white; padding: 15px; border-radius: 16px;
+            font-size: 1rem; backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer;
         }
 
-        /* 모달 스타일 생략 (이전과 동일하지만 반응형 대응) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
@@ -157,8 +131,7 @@
         .modal {
             background: rgba(40, 40, 40, 0.85);
             border: 1px solid rgba(255,255,255,0.2);
-            padding: 25px; border-radius: 20px; width: 90%; max-width: 350px;
-            color: white;
+            padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; color: white;
         }
         .input-group input { 
             width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 15px;
@@ -206,20 +179,39 @@
 
     <script>
         // ==========================================
-        // [중요] 모든 기기에서 공통으로 보일 목록 (여기를 수정하세요!)
+        // [기능 1] 윈도우 스타일 랜덤 배경화면
+        // ==========================================
+        const WALLPAPERS = [
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070&auto=format&fit=crop', // 요세미티
+            'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop', // 산과 호수
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2070&auto=format&fit=crop', // 바다
+            'https://images.unsplash.com/photo-1519681393798-38e43269d877?q=80&w=2070&auto=format&fit=crop', // 밤하늘
+            'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=2070&auto=format&fit=crop', // 알프스
+            'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop', // 구름 산
+            'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop', // 호수와 카누
+            'https://images.unsplash.com/photo-1434725039720-aaad6dd32dfe?q=80&w=2070&auto=format&fit=crop', // 안개 낀 산
+            'https://images.unsplash.com/photo-1504608524841-42fe5bf2d9eb?q=80&w=2070&auto=format&fit=crop', // 숲길
+            'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?q=80&w=2070&auto=format&fit=crop'  // 겨울 풍경
+        ];
+
+        // 페이지 켤 때마다 랜덤 선택
+        const randomWallpaper = WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)];
+        document.body.style.backgroundImage = `url('${randomWallpaper}')`;
+
+
+        // ==========================================
+        // [기능 2] 고정 링크 목록 (콤마 오류 수정됨)
         // ==========================================
         const FIXED_LINKS = [
-            { id: 'f1', title: '업무포털)', url: 'https://gne.eduptl.kr/' },
+            { id: 'f1', title: '업무포털', url: 'https://gne.eduptl.kr/' },
             { id: 'f2', title: '공문서 마법', url: 'https://script.google.com/macros/s/AKfycbxXxP3LTWHSPQ5azXrm67xRYC525QjTe-jTye801iNv01KkhAkHf4-vRW74lpgantNw/exec' },
             { id: 'f3', title: '학생 기록부', url: 'https://fruitsbee.github.io/students/' },
             { id: 'f4', title: '문해력 키우기', url: 'https://fruitsbee.github.io/literacy/' },
             { id: 'f5', title: '영어쓰기학습', url: 'https://script.google.com/macros/s/AKfycbybnOB9nqVobm6ANpUu-YN-DlehmoRhm9B2iwXB4VCjYFOeyQDfc6iLy4O0ZkbeisOWdA/exec' },
             { id: 'f6', title: 'English Bite', url: 'https://fruitsbee.github.io/selfenglish/' }
-        ];
+        ]; // <-- 여기 괄호 닫기 전에 콤마들을 꼼꼼히 챙겼습니다.
 
-        // 로컬 데이터 로드 (없으면 위의 고정 목록 사용)
-        // 주의: 사용자가 브라우저에서 '추가'한 것은 로컬에만 저장됨.
-        // 영구적으로 모든 기기에 띄우려면 위 FIXED_LINKS 배열을 수정해서 깃허브에 올려야 함.
+        // 로컬 데이터 로드
         let saved = localStorage.getItem('myLinks_v2');
         let links = saved ? JSON.parse(saved) : [...FIXED_LINKS];
 
@@ -230,11 +222,13 @@
         let editModeId = null;
 
         // 시계
-        setInterval(() => {
+        function updateClock() {
             const now = new Date();
             document.getElementById('clock').textContent = 
                 `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        }, 1000);
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // 즉시 실행
 
         function renderLinks() {
             listEl.innerHTML = '';
@@ -244,7 +238,6 @@
                 card.draggable = true;
                 card.dataset.index = index;
                 
-                // 클릭 이벤트
                 card.onclick = (e) => {
                     if(e.target.closest('.actions')) return;
                     window.open(link.url, '_blank');
@@ -269,7 +262,6 @@
             try { return new URL(url).hostname; } catch { return url; }
         }
 
-        // --- 데이터 관리 (로컬 + 깃허브 하이브리드) ---
         function saveToStorage() {
             localStorage.setItem('myLinks_v2', JSON.stringify(links));
         }
@@ -299,7 +291,6 @@
             }
         }
 
-        // --- 모달 제어 ---
         function openModal() { editModeId = null; titleInput.value=''; urlInput.value=''; modalOverlay.classList.add('open'); }
         function openEdit(id) { 
             const t = links.find(l => l.id === id);
@@ -308,7 +299,6 @@
         function closeModal() { modalOverlay.classList.remove('open'); }
         modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
 
-        // --- 드래그 앤 드롭 (모바일 지원) ---
         let dragSrcEl = null;
         function addDragEvents(item) {
             item.addEventListener('dragstart', function(e) {
