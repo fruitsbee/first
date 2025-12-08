@@ -10,19 +10,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Quicksand:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
-    <script>
-        MobileDragDrop.polyfill({
-            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
-        });
-        window.addEventListener('touchmove', function() {}, { passive: false });
-    </script>
-
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            /* 더 맑고 투명한 유리 설정 */
+            --glass-bg: rgba(255, 255, 255, 0.06); 
+            --glass-border: rgba(255, 255, 255, 0.15); /* 테두리를 더 연하게 */
+            --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* 그림자를 더 퍼지게 */
             --text-color: #ffffff;
         }
 
@@ -40,12 +33,13 @@
             align-items: center;
             color: var(--text-color);
             justify-content: flex-end; 
-            transition: background-image 1s ease-in-out;
+            transition: background-image 1.5s ease-in-out; /* 배경 전환을 더 천천히 우아하게 */
         }
 
         body::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.3); z-index: -1;
+            background: rgba(0, 0, 0, 0.2); /* 배경 딤 처리도 살짝 연하게 */
+            z-index: -1;
         }
 
         .container {
@@ -55,18 +49,21 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            animation: fadeIn 1.2s ease-out;
+            animation: fadeIn 1.5s cubic-bezier(0.22, 1, 0.36, 1); /* 등장 애니메이션을 더 부드럽게 */
         }
 
         @media (max-width: 768px) {
             body { justify-content: center; }
-            .container { width: 90%; margin-right: 0; height: 95vh; }
+            .container { width: 92%; margin-right: 0; height: 95vh; }
             h1 { font-size: 2rem; }
+            
+            /* 모바일에서 스크롤 살리기 */
+            .card { touch-action: auto !important; }
         }
 
-        header { text-align: right; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        h1 { font-weight: 300; font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 5px; }
-        p.subtitle { font-weight: 300; opacity: 0.9; font-size: 0.9rem; }
+        header { text-align: right; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        h1 { font-weight: 200; font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 5px; } /* 폰트 두께 더 얇게 */
+        p.subtitle { font-weight: 300; opacity: 0.8; font-size: 0.9rem; letter-spacing: 0.5px; }
 
         #link-list {
             flex-grow: 1;
@@ -75,147 +72,141 @@
             padding-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px; /* 간격 조금 더 넓게 */
         }
         #link-list::-webkit-scrollbar { width: 0px; }
 
-        /* === [수정됨] 카드 스타일 & 리플렉션 효과 === */
+        /* === 하늘하늘한 카드 디자인 === */
         .card {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(14px); /* 블러를 조금 더 강하게 */
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 18px; /* 둥굴기 살짝 증가 */
+            padding: 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: grab;
+            cursor: default; /* 기본 커서 */
             box-shadow: var(--glass-shadow);
-            position: relative; /* 중요: 가상요소 위치 기준 */
-            overflow: hidden;   /* 중요: 빛이 카드 밖으로 나가지 않게 */
-            touch-action: none;
-            transition: transform 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.4s;
         }
 
-        /* 오묘한 빛줄기 (가상 요소) */
+        /* PC에서만 드래그 커서 표시 */
+        @media (min-width: 769px) {
+            .card { cursor: grab; }
+            .card:active { cursor: grabbing; }
+        }
+
+        /* 은은한 빛 반사 (Sheen) - 투명도 조절로 더 은은하게 */
         .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%; /* 왼쪽 화면 밖에서 시작 */
-            width: 50%;
-            height: 100%;
-            /* 빛 그라데이션: 투명 -> 은은한 흰색 -> 투명 */
-            background: linear-gradient(
-                to right,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.3) 50%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            transform: skewX(-25deg); /* 대각선으로 기울이기 */
-            transition: none; /* 평소에는 움직임 없음 */
-            pointer-events: none; /* 마우스 클릭 방해 금지 */
-            z-index: 1;
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg); pointer-events: none; z-index: 1;
         }
-
-        /* 마우스 올렸을 때 빛줄기 이동 */
-        .card:hover::before {
-            left: 120%; /* 오른쪽 끝으로 이동 */
-            transition: left 0.7s ease-in-out; /* 0.7초 동안 부드럽게 쓱 */
-        }
+        .card:hover::before { left: 150%; transition: left 1s ease-in-out; }
 
         .card:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.15); /* 배경도 살짝 밝아짐 */
+            transform: translateY(-3px); /* 둥실 떠오르는 느낌 */
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
-        .card:active, .card.dragging { 
-            cursor: grabbing; 
-            transform: scale(1.02);
-            background: rgba(255,255,255,0.25);
-            z-index: 100;
+        .card.dragging { 
+            opacity: 0.6; 
+            transform: scale(0.98);
         }
 
         .card-content { display: flex; flex-direction: column; pointer-events: none; z-index: 2; }
-        .card-title { font-weight: 500; font-size: 1.1rem; margin-bottom: 4px; }
-        .card-url { font-size: 0.75rem; opacity: 0.7; font-weight: 300; }
+        .card-title { font-weight: 400; font-size: 1.1rem; margin-bottom: 4px; color: rgba(255,255,255,0.95); }
+        .card-url { font-size: 0.75rem; opacity: 0.6; font-weight: 300; }
 
-        .actions { display: flex; gap: 8px; z-index: 2; }
+        .actions { display: flex; gap: 8px; z-index: 2; opacity: 0.7; transition: opacity 0.2s; }
+        .card:hover .actions { opacity: 1; }
+
         .icon-btn {
-            background: rgba(255,255,255,0.1);
-            border: none; color: white; padding: 8px; border-radius: 50%;
-            cursor: pointer; backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 8px; border-radius: 50%;
+            cursor: pointer; transition: all 0.2s;
         }
+        .icon-btn:hover { background: rgba(255,255,255,0.2); }
 
         .add-btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--glass-border);
-            color: white; padding: 15px; border-radius: 16px;
-            font-size: 1rem; backdrop-filter: blur(10px);
+            color: white; padding: 16px; border-radius: 18px;
+            font-size: 1rem; font-weight: 300;
+            backdrop-filter: blur(10px);
             display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer;
+            transition: background 0.3s;
         }
+        .add-btn:hover { background: rgba(255, 255, 255, 0.15); }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(12px);
             display: flex; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden; transition: all 0.3s; z-index: 200;
+            opacity: 0; visibility: hidden; transition: all 0.4s; z-index: 200;
         }
         .modal-overlay.open { opacity: 1; visibility: visible; }
         .modal {
-            background: rgba(40, 40, 40, 0.85);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; color: white;
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px; border-radius: 24px; width: 90%; max-width: 350px; color: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
         }
         .input-group input { 
-            width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 15px;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            color: white; border-radius: 8px;
+            width: 100%; padding: 14px; margin-top: 8px; margin-bottom: 20px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: white; border-radius: 12px; font-weight: 300; outline: none; transition: 0.2s;
         }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;}
-        .btn-save { background: white; color: #333; }
+        .input-group input:focus { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+        .btn { padding: 12px 24px; border-radius: 12px; border: none; font-weight: 500; cursor: pointer;}
+        .btn-save { background: #fff; color: #000; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1 id="clock">00:00</h1>
-            <p class="subtitle">Double J's space</p>
+            <p class="subtitle">Double J's Space</p>
         </header>
 
         <div id="link-list"></div>
 
         <button class="add-btn" onclick="openModal()">
-            <i class="ph ph-plus-circle" style="font-size: 1.2rem;"></i> 추가하기
+            <i class="ph ph-plus" style="font-size: 1.1rem;"></i> 추가하기
         </button>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <h3>바로가기 설정</h3>
+            <h3 style="font-weight: 300; margin-bottom: 20px;">바로가기 추가</h3>
             <div class="input-group">
-                <label>이름</label>
-                <input type="text" id="linkTitle">
+                <label style="font-size: 0.8rem; opacity: 0.7;">이름</label>
+                <input type="text" id="linkTitle" placeholder="예: 업무 포털">
             </div>
             <div class="input-group">
-                <label>URL</label>
-                <input type="text" id="linkUrl">
+                <label style="font-size: 0.8rem; opacity: 0.7;">URL</label>
+                <input type="text" id="linkUrl" placeholder="https://...">
             </div>
             <div class="modal-actions">
-                <button class="btn" style="background:transparent; color:#aaa" onclick="closeModal()">취소</button>
+                <button class="btn" style="background:transparent; color:rgba(255,255,255,0.5)" onclick="closeModal()">취소</button>
                 <button class="btn btn-save" onclick="saveLink()">저장</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 배경화면 랜덤 (TIMESTAMP 추가로 캐시 방지)
+        // 배경화면 랜덤 (TIMESTAMP 추가)
         const timestamp = new Date().getTime();
-        const bgUrl = `https://loremflickr.com/1920/1080/nature,water,landscape?lock=${timestamp}`;
+        const bgUrl = `https://loremflickr.com/1920/1080/nature,calm,sky?lock=${timestamp}`;
         const img = new Image();
         img.src = bgUrl;
         img.onload = function() { document.body.style.backgroundImage = `url('${bgUrl}')`; };
@@ -229,8 +220,8 @@
             { id: 'f6', title: 'English Bite', url: 'https://fruitsbee.github.io/selfenglish/' }
         ];
 
-        // [중요] v4로 버전 업 -> 새 목록과 디자인 적용
-        let saved = localStorage.getItem('myLinks_v4');
+        // [중요] v5로 버전 업 -> 새 디자인 및 설정 적용
+        let saved = localStorage.getItem('myLinks_v5');
         let links = saved ? JSON.parse(saved) : [...FIXED_LINKS];
 
         const listEl = document.getElementById('link-list');
@@ -247,14 +238,17 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // 모바일 감지 (768px 이하)
+        const isMobile = window.innerWidth <= 768;
+
         function renderLinks() {
             listEl.innerHTML = '';
             links.forEach((link, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.draggable = true;
                 card.dataset.index = index;
                 
+                // 클릭 이벤트
                 card.onclick = (e) => {
                     if(e.target.closest('.actions')) return;
                     window.open(link.url, '_blank');
@@ -270,7 +264,13 @@
                         <button class="icon-btn" onclick="deleteLink('${link.id}')"><i class="ph ph-x"></i></button>
                     </div>
                 `;
-                addDragEvents(card);
+                
+                // [수정됨] PC(모바일 아님)에서만 드래그 이벤트 연결
+                if (!isMobile) {
+                    card.draggable = true;
+                    addDragEvents(card);
+                }
+                
                 listEl.appendChild(card);
             });
         }
@@ -280,7 +280,7 @@
         }
 
         function saveToStorage() {
-            localStorage.setItem('myLinks_v4', JSON.stringify(links));
+            localStorage.setItem('myLinks_v5', JSON.stringify(links));
         }
 
         function saveLink() {
@@ -301,7 +301,7 @@
         }
 
         function deleteLink(id) {
-            if(confirm('삭제하시겠습니까?')) {
+            if(confirm('이 항목을 삭제하시겠습니까?')) {
                 links = links.filter(l => l.id !== id);
                 saveToStorage();
                 renderLinks();
