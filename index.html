@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Workspace</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Quicksand:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+    <script>
+        // 모바일 터치 이벤트를 드래그 이벤트로 변환 설정
+        MobileDragDrop.polyfill({
+            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+        });
+        
+        // 터치 시 스크롤 방지 (드래그 경험 향상)
+        window.addEventListener('touchmove', function() {}, { passive: false });
+    </script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --text-color: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Quicksand', 'Noto Sans KR', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            /* 배경: 모바일에서도 잘 보이도록 중앙 정렬 */
+            background: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            /* 기본(PC): 우측 정렬 */
+            justify-content: flex-end; 
+        }
+
+        body::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.25); z-index: -1;
+        }
+
+        /* 반응형 컨테이너 */
+        .container {
+            width: 400px;
+            height: 90vh;
+            margin-right: 5%; /* PC: 우측 여백 */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 1.2s ease-out;
+            transition: all 0.5s ease;
+        }
+
+        /* 모바일 대응 미디어 쿼리 */
+        @media (max-width: 768px) {
+            body {
+                justify-content: center; /* 모바일: 중앙 정렬 */
+            }
+            .container {
+                width: 90%; /* 모바일: 꽉 차게 */
+                margin-right: 0;
+                height: 95vh;
+            }
+            h1 { font-size: 2rem; }
+            .card { padding: 16px; } /* 터치하기 좋게 패딩 조정 */
+        }
+
+        header { text-align: right; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        h1 { font-weight: 300; font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 5px; }
+        p.subtitle { font-weight: 300; opacity: 0.8; font-size: 0.9rem; }
+
+        #link-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+            padding-bottom: 20px; /* 하단 여백 확보 */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #link-list::-webkit-scrollbar { width: 0px; } /* 모바일에서 스크롤바 숨김 */
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            transition: all 0.2s ease;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            touch-action: none; /* 터치 스크롤 방지 (드래그 위해) */
+        }
+
+        .card:active, .card.dragging { 
+            cursor: grabbing; 
+            transform: scale(1.02);
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+            z-index: 100;
+        }
+
+        .card-content { display: flex; flex-direction: column; pointer-events: none; }
+        .card-title { font-weight: 500; font-size: 1.1rem; margin-bottom: 4px; }
+        .card-url { font-size: 0.75rem; opacity: 0.7; font-weight: 300; }
+
+        /* 수정/삭제 버튼 */
+        .actions { display: flex; gap: 8px; }
+        .icon-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .add-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 15px;
+            border-radius: 16px;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* 모달 스타일 생략 (이전과 동일하지만 반응형 대응) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s; z-index: 200;
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal {
+            background: rgba(40, 40, 40, 0.85);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 25px; border-radius: 20px; width: 90%; max-width: 350px;
+            color: white;
+        }
+        .input-group input { 
+            width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 15px;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; border-radius: 8px;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;}
+        .btn-save { background: white; color: #333; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="clock">00:00</h1>
+            <p class="subtitle">모든 것이 연결된 당신의 공간</p>
+        </header>
+
+        <div id="link-list"></div>
+
+        <button class="add-btn" onclick="openModal()">
+            <i class="ph ph-plus-circle" style="font-size: 1.2rem;"></i> 추가하기
+        </button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3>바로가기 설정</h3>
+            <div class="input-group">
+                <label>이름</label>
+                <input type="text" id="linkTitle">
+            </div>
+            <div class="input-group">
+                <label>URL</label>
+                <input type="text" id="linkUrl">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" style="background:transparent; color:#aaa" onclick="closeModal()">취소</button>
+                <button class="btn btn-save" onclick="saveLink()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // [중요] 모든 기기에서 공통으로 보일 목록 (여기를 수정하세요!)
+        // ==========================================
+        const FIXED_LINKS = [
+            { id: 'f1', title: '나이스(NEIS)', url: 'https://www.neis.go.kr' },
+            { id: 'f2', title: 'K-에듀파인', url: 'https://klef.gne.go.kr' },
+            { id: 'f3', title: '구글 클래스룸', url: 'https://classroom.google.com' },
+            { id: 'f4', title: '미리캔버스', url: 'https://www.miricanvas.com' }
+        ];
+
+        // 로컬 데이터 로드 (없으면 위의 고정 목록 사용)
+        // 주의: 사용자가 브라우저에서 '추가'한 것은 로컬에만 저장됨.
+        // 영구적으로 모든 기기에 띄우려면 위 FIXED_LINKS 배열을 수정해서 깃허브에 올려야 함.
+        let saved = localStorage.getItem('myLinks_v2');
+        let links = saved ? JSON.parse(saved) : [...FIXED_LINKS];
+
+        const listEl = document.getElementById('link-list');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const titleInput = document.getElementById('linkTitle');
+        const urlInput = document.getElementById('linkUrl');
+        let editModeId = null;
+
+        // 시계
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').textContent = 
+                `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        }, 1000);
+
+        function renderLinks() {
+            listEl.innerHTML = '';
+            links.forEach((link, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.draggable = true;
+                card.dataset.index = index;
+                
+                // 클릭 이벤트
+                card.onclick = (e) => {
+                    if(e.target.closest('.actions')) return;
+                    window.open(link.url, '_blank');
+                };
+
+                card.innerHTML = `
+                    <div class="card-content">
+                        <span class="card-title">${link.title}</span>
+                        <span class="card-url">${getHostname(link.url)}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="icon-btn" onclick="openEdit('${link.id}')"><i class="ph ph-pencil-simple"></i></button>
+                        <button class="icon-btn" onclick="deleteLink('${link.id}')"><i class="ph ph-x"></i></button>
+                    </div>
+                `;
+                addDragEvents(card);
+                listEl.appendChild(card);
+            });
+        }
+
+        function getHostname(url) {
+            try { return new URL(url).hostname; } catch { return url; }
+        }
+
+        // --- 데이터 관리 (로컬 + 깃허브 하이브리드) ---
+        function saveToStorage() {
+            localStorage.setItem('myLinks_v2', JSON.stringify(links));
+        }
+
+        function saveLink() {
+            const title = titleInput.value.trim();
+            let url = urlInput.value.trim();
+            if (!title || !url) return;
+            if (!url.startsWith('http')) url = 'https://' + url;
+
+            if (editModeId) {
+                const idx = links.findIndex(l => l.id === editModeId);
+                if(idx > -1) { links[idx].title = title; links[idx].url = url; }
+            } else {
+                links.push({ id: Date.now().toString(), title, url });
+            }
+            saveToStorage();
+            renderLinks();
+            closeModal();
+        }
+
+        function deleteLink(id) {
+            if(confirm('삭제하시겠습니까? (브라우저에서만 삭제됩니다)')) {
+                links = links.filter(l => l.id !== id);
+                saveToStorage();
+                renderLinks();
+            }
+        }
+
+        // --- 모달 제어 ---
+        function openModal() { editModeId = null; titleInput.value=''; urlInput.value=''; modalOverlay.classList.add('open'); }
+        function openEdit(id) { 
+            const t = links.find(l => l.id === id);
+            if(t) { editModeId=id; titleInput.value=t.title; urlInput.value=t.url; modalOverlay.classList.add('open'); }
+        }
+        function closeModal() { modalOverlay.classList.remove('open'); }
+        modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
+
+        // --- 드래그 앤 드롭 (모바일 지원) ---
+        let dragSrcEl = null;
+        function addDragEvents(item) {
+            item.addEventListener('dragstart', function(e) {
+                dragSrcEl = this;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+                this.classList.add('dragging');
+            });
+            item.addEventListener('dragover', e => { e.preventDefault(); return false; });
+            item.addEventListener('dragenter', function() { this.classList.add('over'); });
+            item.addEventListener('dragleave', function() { this.classList.remove('over'); });
+            item.addEventListener('drop', function(e) {
+                e.stopPropagation();
+                if (dragSrcEl !== this) {
+                    const srcIdx = Number(dragSrcEl.dataset.index);
+                    const tgtIdx = Number(this.dataset.index);
+                    const item = links[srcIdx];
+                    links.splice(srcIdx, 1);
+                    links.splice(tgtIdx, 0, item);
+                    saveToStorage();
+                    renderLinks();
+                }
+                return false;
+            });
+            item.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
+        }
+
+        renderLinks();
+    </script>
+</body>
+</html>
