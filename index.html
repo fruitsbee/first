@@ -32,7 +32,6 @@
             font-family: 'Quicksand', 'Noto Sans KR', sans-serif;
             height: 100vh;
             overflow: hidden;
-            /* 이미지 로딩 전 기본 배경색 (눈이 편한 다크 그레이) */
             background-color: #2b2b2b; 
             background-repeat: no-repeat;
             background-position: center center;
@@ -41,12 +40,12 @@
             align-items: center;
             color: var(--text-color);
             justify-content: flex-end; 
-            transition: background-image 1s ease-in-out; /* 부드럽게 전환 */
+            transition: background-image 1s ease-in-out;
         }
 
         body::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.3); z-index: -1; /* 글자 잘 보이게 어둡게 처리 */
+            background: rgba(0, 0, 0, 0.3); z-index: -1;
         }
 
         .container {
@@ -80,6 +79,7 @@
         }
         #link-list::-webkit-scrollbar { width: 0px; }
 
+        /* === [수정됨] 카드 스타일 & 리플렉션 효과 === */
         .card {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -92,8 +92,42 @@
             align-items: center;
             cursor: grab;
             box-shadow: var(--glass-shadow);
-            position: relative;
+            position: relative; /* 중요: 가상요소 위치 기준 */
+            overflow: hidden;   /* 중요: 빛이 카드 밖으로 나가지 않게 */
             touch-action: none;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        /* 오묘한 빛줄기 (가상 요소) */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%; /* 왼쪽 화면 밖에서 시작 */
+            width: 50%;
+            height: 100%;
+            /* 빛 그라데이션: 투명 -> 은은한 흰색 -> 투명 */
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg); /* 대각선으로 기울이기 */
+            transition: none; /* 평소에는 움직임 없음 */
+            pointer-events: none; /* 마우스 클릭 방해 금지 */
+            z-index: 1;
+        }
+
+        /* 마우스 올렸을 때 빛줄기 이동 */
+        .card:hover::before {
+            left: 120%; /* 오른쪽 끝으로 이동 */
+            transition: left 0.7s ease-in-out; /* 0.7초 동안 부드럽게 쓱 */
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15); /* 배경도 살짝 밝아짐 */
         }
 
         .card:active, .card.dragging { 
@@ -103,11 +137,11 @@
             z-index: 100;
         }
 
-        .card-content { display: flex; flex-direction: column; pointer-events: none; }
+        .card-content { display: flex; flex-direction: column; pointer-events: none; z-index: 2; }
         .card-title { font-weight: 500; font-size: 1.1rem; margin-bottom: 4px; }
         .card-url { font-size: 0.75rem; opacity: 0.7; font-weight: 300; }
 
-        .actions { display: flex; gap: 8px; }
+        .actions { display: flex; gap: 8px; z-index: 2; }
         .icon-btn {
             background: rgba(255,255,255,0.1);
             border: none; color: white; padding: 8px; border-radius: 50%;
@@ -150,7 +184,7 @@
     <div class="container">
         <header>
             <h1 id="clock">00:00</h1>
-            <p class="subtitle">모든 것이 연결된 당신의 공간</p>
+            <p class="subtitle">Double J's space</p>
         </header>
 
         <div id="link-list"></div>
@@ -179,26 +213,13 @@
     </div>
 
     <script>
-        // ==========================================
-        // [기능 1] '진짜 랜덤' 배경화면 (자연, 호수, 산 키워드)
-        // ==========================================
-        
-        // 현재 시간(Timestamp)을 URL 뒤에 붙여서 브라우저가 "아 이건 새 그림이구나!" 라고 인식하게 만듭니다.
+        // 배경화면 랜덤 (TIMESTAMP 추가로 캐시 방지)
         const timestamp = new Date().getTime();
-        
-        // LoremFlickr 서비스 사용 (키워드: nature, water, landscape, calm)
         const bgUrl = `https://loremflickr.com/1920/1080/nature,water,landscape?lock=${timestamp}`;
-        
-        // 배경 이미지 적용
         const img = new Image();
         img.src = bgUrl;
-        img.onload = function() {
-            document.body.style.backgroundImage = `url('${bgUrl}')`;
-        };
+        img.onload = function() { document.body.style.backgroundImage = `url('${bgUrl}')`; };
 
-        // ==========================================
-        // [기능 2] 고정 링크 목록
-        // ==========================================
         const FIXED_LINKS = [
             { id: 'f1', title: '업무포털', url: 'https://gne.eduptl.kr/' },
             { id: 'f2', title: '공문서 마법', url: 'https://script.google.com/macros/s/AKfycbxXxP3LTWHSPQ5azXrm67xRYC525QjTe-jTye801iNv01KkhAkHf4-vRW74lpgantNw/exec' },
@@ -208,8 +229,8 @@
             { id: 'f6', title: 'English Bite', url: 'https://fruitsbee.github.io/selfenglish/' }
         ];
 
-        // 로컬 데이터 로드
-        let saved = localStorage.getItem('myLinks_v2');
+        // [중요] v4로 버전 업 -> 새 목록과 디자인 적용
+        let saved = localStorage.getItem('myLinks_v4');
         let links = saved ? JSON.parse(saved) : [...FIXED_LINKS];
 
         const listEl = document.getElementById('link-list');
@@ -218,14 +239,13 @@
         const urlInput = document.getElementById('linkUrl');
         let editModeId = null;
 
-        // 시계
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').textContent = 
                 `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         }
         setInterval(updateClock, 1000);
-        updateClock(); // 즉시 실행
+        updateClock();
 
         function renderLinks() {
             listEl.innerHTML = '';
@@ -260,7 +280,7 @@
         }
 
         function saveToStorage() {
-            localStorage.setItem('myLinks_v2', JSON.stringify(links));
+            localStorage.setItem('myLinks_v4', JSON.stringify(links));
         }
 
         function saveLink() {
@@ -281,7 +301,7 @@
         }
 
         function deleteLink(id) {
-            if(confirm('삭제하시겠습니까? (브라우저에서만 삭제됩니다)')) {
+            if(confirm('삭제하시겠습니까?')) {
                 links = links.filter(l => l.id !== id);
                 saveToStorage();
                 renderLinks();
@@ -324,7 +344,6 @@
                 this.classList.remove('dragging');
             });
         }
-
         renderLinks();
     </script>
 </body>
