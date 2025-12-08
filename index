@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Quicksand:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --text-color: #ffffff;
+            --accent-color: rgba(255, 255, 255, 0.9);
+            --shimmer-color: rgba(255, 255, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* 텍스트 선택 방지 (드래그 경험 향상) */
+        }
+
+        body {
+            font-family: 'Quicksand', 'Noto Sans KR', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+            display: flex;
+            justify-content: flex-end; /* 우측 정렬 */
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        /* 배경 어둡게 처리 (가독성 확보) */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: -1;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            width: 400px;
+            height: 90vh;
+            margin-right: 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        /* 헤더 (시계 및 인사) */
+        header {
+            text-align: right;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        h1 { font-weight: 300; font-size: 2.5rem; letter-spacing: -1px; }
+        p.subtitle { font-weight: 300; opacity: 0.8; font-size: 0.9rem; margin-top: 5px; }
+
+        /* 리스트 영역 */
+        #link-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 스크롤바 숨김 (미관상) */
+        #link-list::-webkit-scrollbar { width: 4px; }
+        #link-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+        /* 개별 카드 (글래스모피즘) */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+        }
+
+        .card:active { cursor: grabbing; }
+
+        /* 드래그 중 효과 (빛 반사 느낌) */
+        .card.dragging {
+            opacity: 0.9;
+            border-color: rgba(255,255,255,0.6);
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+        
+        /* 텍스트 스타일 */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            pointer-events: none; /* 드래그 간섭 방지 */
+        }
+        
+        .card-title { font-weight: 500; font-size: 1.1rem; margin-bottom: 4px; }
+        .card-url { font-size: 0.75rem; opacity: 0.6; font-weight: 300; }
+
+        /* 삭제/수정 버튼 (호버시에만 등장) */
+        .actions {
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .card:hover .actions { opacity: 1; }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            color: white;
+            opacity: 0.6;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.2); opacity: 1; }
+
+        /* 추가 버튼 */
+        .add-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 15px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .add-btn:hover { background: rgba(255, 255, 255, 0.25); }
+
+        /* 모달 (팝업) 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: rgba(30, 30, 30, 0.6); /* 약간 어두운 글래스 */
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 30px;
+            border-radius: 20px;
+            width: 350px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.open .modal { transform: translateY(0); }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; opacity: 0.8; }
+        .input-group input {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            font-family: inherit;
+        }
+        .input-group input:focus { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.15); }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .btn-cancel { background: transparent; color: rgba(255,255,255,0.6); }
+        .btn-cancel:hover { color: white; }
+        .btn-save { background: white; color: #333; }
+        .btn-save:hover { background: #f0f0f0; }
+
+        /* 애니메이션 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="clock">00:00</h1>
+            <p class="subtitle">오늘도 평온하고 생산적인 하루 보내세요.</p>
+        </header>
+
+        <div id="link-list">
+            </div>
+
+        <button class="add-btn" onclick="openModal()">
+            <i class="ph ph-plus"></i> 새 페이지 추가
+        </button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 style="margin-bottom: 20px; font-weight: 400;">페이지 정보 입력</h3>
+            <div class="input-group">
+                <label>이름 (예: 공문 처리, 학습 자료)</label>
+                <input type="text" id="linkTitle" placeholder="화면에 표시될 이름">
+            </div>
+            <div class="input-group">
+                <label>URL 주소</label>
+                <input type="text" id="linkUrl" placeholder="https://...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">취소</button>
+                <button class="btn btn-save" onclick="saveLink()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 초기 데이터 (예시)
+        let links = JSON.parse(localStorage.getItem('myLinks')) || [
+            { id: '1', title: '나이스(NEIS)', url: 'https://www.neis.go.kr' },
+            { id: '2', title: 'K-에듀파인', url: 'https://klef.gne.go.kr' },
+            { id: '3', title: '미리캔버스', url: 'https://www.miricanvas.com' }
+        ];
+
+        let editModeId = null; // 수정 중인 아이템 ID
+
+        const listEl = document.getElementById('link-list');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const titleInput = document.getElementById('linkTitle');
+        const urlInput = document.getElementById('linkUrl');
+
+        // --- 시계 기능 ---
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 렌더링 함수 ---
+        function renderLinks() {
+            listEl.innerHTML = '';
+            links.forEach((link, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.draggable = true;
+                card.dataset.index = index;
+                
+                // 클릭 시 해당 URL로 이동
+                card.onclick = (e) => {
+                    // 버튼 클릭 시 이동 방지
+                    if(e.target.closest('.actions')) return;
+                    window.open(link.url, '_blank');
+                };
+
+                card.innerHTML = `
+                    <div class="card-content">
+                        <span class="card-title">${link.title}</span>
+                        <span class="card-url">${new URL(link.url).hostname}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="icon-btn" onclick="openEdit('${link.id}')"><i class="ph ph-pencil-simple"></i></button>
+                        <button class="icon-btn" onclick="deleteLink('${link.id}')"><i class="ph ph-trash"></i></button>
+                    </div>
+                `;
+
+                // 드래그 이벤트 연결
+                addDragEvents(card);
+                listEl.appendChild(card);
+            });
+        }
+
+        // --- 모달 & 데이터 관리 ---
+        function openModal() {
+            editModeId = null;
+            titleInput.value = '';
+            urlInput.value = '';
+            modalOverlay.classList.add('open');
+            titleInput.focus();
+        }
+
+        function openEdit(id) {
+            editModeId = id;
+            const target = links.find(l => l.id === id);
+            if(target) {
+                titleInput.value = target.title;
+                urlInput.value = target.url;
+                modalOverlay.classList.add('open');
+            }
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+        }
+
+        function saveLink() {
+            const title = titleInput.value.trim();
+            let url = urlInput.value.trim();
+
+            if (!title || !url) return;
+            if (!url.startsWith('http')) url = 'https://' + url;
+
+            if (editModeId) {
+                // 수정
+                const idx = links.findIndex(l => l.id === editModeId);
+                if(idx > -1) {
+                    links[idx].title = title;
+                    links[idx].url = url;
+                }
+            } else {
+                // 신규 추가
+                links.push({
+                    id: Date.now().toString(),
+                    title: title,
+                    url: url
+                });
+            }
+
+            saveToStorage();
+            renderLinks();
+            closeModal();
+        }
+
+        function deleteLink(id) {
+            if(confirm('이 페이지를 삭제하시겠습니까?')) {
+                links = links.filter(l => l.id !== id);
+                saveToStorage();
+                renderLinks();
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('myLinks', JSON.stringify(links));
+        }
+
+        // --- 드래그 앤 드롭 로직 (반사 효과 포함) ---
+        let dragSrcEl = null;
+
+        function addDragEvents(item) {
+            item.addEventListener('dragstart', function(e) {
+                dragSrcEl = this;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+                this.classList.add('dragging');
+            });
+
+            item.addEventListener('dragover', function(e) {
+                if (e.preventDefault) e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            });
+
+            item.addEventListener('dragenter', function(e) {
+                this.classList.add('over');
+            });
+
+            item.addEventListener('dragleave', function(e) {
+                this.classList.remove('over');
+            });
+
+            item.addEventListener('drop', function(e) {
+                if (e.stopPropagation) e.stopPropagation();
+
+                if (dragSrcEl !== this) {
+                    const srcIndex = Number(dragSrcEl.dataset.index);
+                    const targetIndex = Number(this.dataset.index);
+
+                    // 배열 순서 변경
+                    const itemToMove = links[srcIndex];
+                    links.splice(srcIndex, 1);
+                    links.splice(targetIndex, 0, itemToMove);
+                    
+                    saveToStorage();
+                    renderLinks();
+                }
+                return false;
+            });
+
+            item.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+                document.querySelectorAll('.card').forEach(col => col.classList.remove('over'));
+            });
+        }
+
+        // 초기 실행
+        renderLinks();
+
+        // 배경 클릭시 모달 닫기
+        modalOverlay.addEventListener('click', (e) => {
+            if(e.target === modalOverlay) closeModal();
+        });
+    </script>
+</body>
+</html>
