@@ -211,12 +211,10 @@
     </div>
 
     <script>
-        // 배경화면 랜덤 (TIMESTAMP 추가)
-        const timestamp = new Date().getTime();
-        const bgUrl = `https://loremflickr.com/1920/1080/nature,calm,sky?lock=${timestamp}`;
-        const img = new Image();
-        img.src = bgUrl;
-        img.onload = function() { document.body.style.backgroundImage = `url('${bgUrl}')`; };
+        // 빠른 초기 로딩을 위해 하루 단위로 캐시 가능한 랜덤 배경 사용
+        const today = new Date().toISOString().slice(0, 10);
+        const bgUrl = `https://picsum.photos/seed/workspace-${today}/1600/900`;
+        document.body.style.backgroundImage = `url('${bgUrl}')`;
 
         const FIXED_LINKS = [
             { id: 'f1', title: '업무포털', url: 'https://gne.eduptl.kr/' },
